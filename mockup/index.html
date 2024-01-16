@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      p {
+        margin: 0;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr, 2fr;
+      }
+      /* Pour la deuxième ligne avec une colonne unique */
+      .grid .add-cours {
+        grid-column: span 2; /* Utilisez span 2 pour occuper les deux colonnes disponibles */
+      }
+
+      aside {
+        width: 15vw;
+      }
+
+      .edt-cell {
+        border: 1px solid rgba(138, 138, 138, 0.348);
+        height: 70px;
+        width: 220px;
+        z-index: 0;
+      }
+
+      .cours {
+        pointer-events: auto;
+        width: 220px;
+        border: solid 2px rgba(21, 21, 21, 0.775);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: move;
+        line-height: 20px;
+      }
+
+      .cours p {
+        font-size: 15px;
+        cursor: grab;
+      }
+
+      .cours-libelle {
+        font-weight: bold;
+        font-size: 18px !important;
+      }
+
+      .draggable-mirror {
+        position: fixed !important;
+        z-index: 999;
+        opacity: 0.5;
+      }
+
+      .draggable-dropzone--occupied {
+        z-index: 1;
+      }
+
+      .draggable-cours {
+        pointer-events: none;
+        border: none;
+      }
+
+      .draggable--is-dragging {
+        cursor: move;
+      }
+      .btn-group {
+        width: 100%;
+        margin-bottom: 30px;
+      }
+
+      .btn-group > .btn {
+        width: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="modal fade" id="coursModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="coursModalLabel">
+              + Ajouter un cours - BTS SIO1 SLAM
+            </h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <label for="bloc" class="form-label">Bloc</label>
+            <select class="form-select mb-3" name="bloc">
+              <option selected>Cliquer pour choisir...</option>
+              <option value="1">One</option>
+              <option value="2">Two</option>
+              <option value="3">Three</option>
+            </select>
+
+            <label for="bloc" class="form-label">Professeur</label>
+            <select
+              class="form-select mb-3"
+              aria-label="Default select example"
+              name="bloc"
+            >
+              <option selected>Cliquer pour choisir...</option>
+              <option value="1">One</option>
+              <option value="2">Two</option>
+              <option value="3">Three</option>
+            </select>
+            <div class="row g-3">
+              <div class="col">
+                <label for="bloc" class="form-label">Salle</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Saisissez le numéro d'une salle..."
+                />
+              </div>
+              <div class="col">
+                <label for="bloc" class="form-label">Horaires</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Last name"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Annuler
+            </button>
+            <button type="button" class="btn btn-success">Ajouter</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="vh-100 d-flex flex-column justify-content-center">
+      <div class="d-flex justify-content-evenly align-items-center">
+        <aside class="d-flex flex-column">
+          <div>
+            <p>Semestre</p>
+            <div
+              class="btn-group"
+              role="group"
+              aria-label="Basic mixed styles example"
+            >
+              <input
+                type="radio"
+                class="btn-check"
+                name="semestre"
+                id="sem-1"
+                autocomplete="off"
+                checked
+              />
+              <label class="btn btn-outline-success" for="sem-1">1er</label>
+
+              <input
+                type="radio"
+                class="btn-check"
+                name="semestre"
+                id="sem-2"
+                autocomplete="off"
+              />
+              <label class="btn btn-outline-success" for="sem-2">2ème</label>
+            </div>
+          </div>
+
+          <!-- Bouton pour changer de classe (BTS SIO1 / BTS SIO2) -->
+          <div>
+            <p>Classe</p>
+            <div
+              class="btn-group"
+              role="group"
+              aria-label="Basic radio toggle button group"
+            >
+              <input
+                type="radio"
+                class="btn-check"
+                name="classe"
+                id="btssio1"
+                autocomplete="off"
+                checked
+              />
+              <label class="btn btn-outline-success" for="btssio1"
+                >BTS SIO1</label
+              >
+
+              <input
+                type="radio"
+                class="btn-check"
+                name="classe"
+                id="btssio2"
+                autocomplete="off"
+              />
+              <label class="btn btn-outline-success" for="btssio2"
+                >BTS SIO2</label
+              >
+            </div>
+          </div>
+          <!--Bouton pour changer de semestre (1er semestre/2ème semestre)-->
+          <div>
+            <p>Groupe</p>
+            <div
+              class="btn-group"
+              role="group"
+              aria-label="Basic mixed styles example"
+            >
+              <input
+                type="radio"
+                class="btn-check"
+                name="groupe"
+                id="slam"
+                autocomplete="off"
+                checked
+              />
+              <label class="btn btn-outline-success" for="slam">SLAM</label>
+
+              <input
+                type="radio"
+                class="btn-check"
+                name="groupe"
+                id="sisr"
+                autocomplete="off"
+              />
+              <label class="btn btn-outline-success" for="sisr">SISR</label>
+            </div>
+          </div>
+        </aside>
+        <div class="d-flex align-items-center">
+          <div class="day-container position-relative">
+            <div class="edt-cell">
+              <div
+                class="cours"
+                style="height: 140px; background: blue"
+                data-id-cours="C5"
+              >
+                <div class="">test</div>
+              </div>
+            </div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+          </div>
+          <div class="day-container position-relative">
+            <div class="edt-cell">
+              <div
+                class="cours"
+                style="height: 140px; background: rgb(162, 89, 89)"
+                data-id-cours="C4"
+              >
+                <div class="text-center"><p class=""></p></div>
+              </div>
+            </div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell">
+              <div
+                class="cours"
+                style="height: 210px; background: rgb(1, 255, 69)"
+                data-id-cours="C10"
+              >
+                <div class="text-center">
+                  <p class="cours-libelle">SLAM</p>
+                  <p>BROUARD S.</p>
+                  <p>à Paris pas loin</p>
+                </div>
+              </div>
+            </div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+          </div>
+          <div class="day-container position-relative">
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+          </div>
+          <div class="day-container position-relative">
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+          </div>
+          <div class="day-container position-relative">
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+          </div>
+          <div class="day-container position-relative">
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+            <div class="edt-cell"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="add-cours d-flex justify-content-center">
+        <div
+          class="btn btn-success px-5 py-2 m-4"
+          data-bs-toggle="modal"
+          data-bs-target="#coursModal"
+        >
+          + Ajouter un cours
+        </div>
+      </div>
+    </div>
+  </body>
+  <script type="module" src="./main.js"></script>
+</html>
